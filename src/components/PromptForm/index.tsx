@@ -61,9 +61,6 @@ const PromptForm = ({
 
         // Submit and get response message
         const responseMessage = await submitUserMessage(value);
-
-        console.log(" : responseMessage : ", responseMessage);
-
         setMessages((messages) => [...messages, responseMessage]);
       }}
     >

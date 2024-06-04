@@ -19,14 +19,18 @@ const Provider = ({ children }: any) => {
           JSON.stringify({ email: searchParams.get("email"), count: 1 })
         );
         router.push("/chat");
-        localStorage.removeItem('token')
+        localStorage.removeItem("token");
       } else {
         router.push("/auth/login");
       }
     }
-  }, [searchParams.get("email")]);
+  }, [router, searchParams]);
 
-  return <>{children}</>;
+  return (
+    <React.Suspense fallback={<div className="flex-1 overflow-auto" />}>
+      {children}
+    </React.Suspense>
+  );
 };
 
 export default Provider;

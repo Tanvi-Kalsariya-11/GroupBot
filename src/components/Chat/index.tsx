@@ -54,7 +54,7 @@ export function PerChat({ id, className, session, missingKeys }: ChatProps) {
     });
   }, [missingKeys]);
 
-  const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
+  const { messagesRef, scrollRef, isAtBottom } =
     useScrollAnchor();
 
   return (
@@ -71,14 +71,14 @@ export function PerChat({ id, className, session, missingKeys }: ChatProps) {
         ) : (
           <EmptyScreen />
         )}
-        <div className="w-full h-px" ref={visibilityRef} />
+        <div className="w-full h-px" />
       </div>
       <ChatPanel
         id={id}
         input={input}
         setInput={setInput}
         isAtBottom={isAtBottom}
-        scrollToBottom={scrollToBottom}
+        scrollToBottom={()=>{}}
       />
     </div>
   );

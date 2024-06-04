@@ -53,7 +53,7 @@ async function confirmPurchase(symbol: string, price: number, amount: number) {
 
     purchasing.update(
       <div className="inline-flex items-start gap-1 md:items-center">
-        {spinner}
+        <Spinner />
         <p className="mb-2">
           Purchasing {amount} ${symbol}... working on it...
         </p>
@@ -105,11 +105,7 @@ async function confirmPurchase(symbol: string, price: number, amount: number) {
 async function submitUserMessage(content: string) {
   "use server";
 
-  console.log(" : submitUserMessage CALLED :", content);
-
   const aiState = getMutableAIState<typeof AI>();
-
-  console.log(" : aiState : ", aiState.get());
 
   aiState.update({
     ...aiState.get(),
@@ -147,9 +143,6 @@ async function submitUserMessage(content: string) {
         ],
       });
     }
-
-    console.log(" : aiState  : ", aiState.get);
-    
   } catch (error) {
     console.error("Error in submitUserMessage:", error);
   }
@@ -158,22 +151,22 @@ async function submitUserMessage(content: string) {
   let textNode: undefined | React.ReactNode;
 
   const result = await streamUI({
-    model: openai("gpt-3.5-turbo"),
+    model: openai("gpt-4o"),
     initial: <SpinnerMessage />,
     // system: `\
     // You are a stock trading conversation bot and you can help users buy stocks, step by step.
     // You and the user can discuss stock prices and the user can adjust the amount of stocks they want to buy, or place an order, in the UI.
-    
+
     // Messages inside [] means that it's a UI element or a user event. For example:
     // - "[Price of AAPL = 100]" means that an interface of the stock price of AAPL is shown to the user.
     // - "[User has changed the amount of AAPL to 10]" means that the user has changed the amount of AAPL to 10 in the UI.
-    
+
     // If the user requests purchasing a stock, call \`show_stock_purchase_ui\` to show the purchase UI.
     // If the user just wants the price, call \`show_stock_price\` to show the price.
     // If you want to show trending stocks, call \`list_stocks\`.
     // If you want to show events, call \`get_events\`.
     // If the user wants to sell stock, or complete another impossible task, respond that you are a demo and cannot do that.
-    
+
     // Besides that, you can also chat with users and do some calculations if needed.`,
     messages: [
       ...aiState.get().messages.map((message: any) => ({
@@ -507,9 +500,6 @@ async function submitUserMessage(content: string) {
     //   },
     // },
   });
-
-  console.log(" : result : ", result);
-  
 
   return {
     id: nanoid(),

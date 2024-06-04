@@ -89,10 +89,6 @@ export function ChatPanel({
                   );
 
                   setMessages((currentMessages) => {
-                    console.log(" responseMessage ==> ",currentMessages, [
-                      ...currentMessages,
-                      responseMessage,
-                    ]);
                     return [...currentMessages, responseMessage];
                   });
                 }}
@@ -117,17 +113,17 @@ export function ChatPanel({
                     <ShareIcon className="mr-2" />
                     Share
                   </button>
-                  <ChatShareDialog
+                  {/* <ChatShareDialog
                     open={shareDialogOpen}
                     onOpenChange={setShareDialogOpen}
                     onCopy={() => setShareDialogOpen(false)}
-                    shareChat={shareChat}
+                    shareChat={()=>{}}
                     chat={{
                       id,
                       title,
                       messages: aiState.messages,
                     }}
-                  />
+                  /> */}
                 </>
               ) : null}
             </div>

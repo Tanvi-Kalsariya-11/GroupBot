@@ -124,6 +124,7 @@ export async function shareChat(id: string) {
   //   };
   //   await kv.hmset(`chat:${chat.id}`, payload);
   //   return payload;
+  return;
 }
 
 export async function saveChat(chat: Chat) {

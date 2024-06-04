@@ -1,7 +1,6 @@
 "use server";
 
 import { User } from "@/lib/types";
-import { AuthError } from "next-auth";
 import { z } from "zod";
 // import { kv } from "@vercel/kv";
 import { ResultCode, getStringFromBuffer } from "@/lib/utils";
@@ -32,30 +31,17 @@ export async function sendMagicLink(email: string, token: string) {
     html: `<strong>Click the link to log in: <a href="${magicLink}">Login</a></strong>`,
   };
 
-  console.log(" SEND MAGIC LINK :::: ", magicLink, " MSG ::: ", msg);
-
-  await sgMail
-    .send(msg)
-    .then((response) => {
-      console.log(" RESPONSE :::: ", response);
-    })
-    .catch((error) => {
-      console.log(" ERROR :::: ", error);
-    });
-  console.log(" ENDDDDD : ");
+  await sgMail.send(msg);
 }
 
 export async function authenticate(
   _prevState: Result | undefined,
   formData: FormData
 ): Promise<Result | undefined> {
-  console.log(" CALLED :::: ");
 
   try {
     const email = formData.get("email");
     const password = formData.get("password");
-
-    console.log(" : email ; ", email, " : password : ", password);
 
     const parsedCredentials = z
       .object({
@@ -66,8 +52,6 @@ export async function authenticate(
         email,
         password,
       });
-
-    console.log(" : parsedCredentials : ", parsedCredentials);
 
     if (parsedCredentials.success) {
       await signIn("credentials", {
@@ -88,8 +72,8 @@ export async function authenticate(
       };
     }
   } catch (error) {
-    if (error as AuthError) {
-      switch (error.type) {
+    if (error as any) {
+      switch (error as any) {
         case "CredentialsSignin":
           return {
             type: "error",
@@ -111,8 +95,6 @@ export async function signup(
 ): Promise<Result | undefined> {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
-
-  console.log(": email ; ", email, " passw :: ", password);
 
   const parsedCredentials = z
     .object({
@@ -146,8 +128,8 @@ export async function signup(
       // }
       // return result;
     } catch (error) {
-      if (error instanceof AuthError) {
-        switch (error.type) {
+      if (error as any) {
+        switch (error) {
           case "CredentialsSignin":
             return {
               type: "error",

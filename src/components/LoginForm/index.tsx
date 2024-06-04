@@ -16,8 +16,6 @@ export default function LoginForm() {
 
   useEffect(() => {
     if (result) {
-      console.log(" : RESULT : ", result);
-
       if (result.type === "error") {
         toast.error(getMessageFromCode(result.resultCode));
       } else {
@@ -36,10 +34,7 @@ export default function LoginForm() {
           const id = nanoid();
           const email = e.get("email");
           localStorage.setItem("token", id);
-          console.log(" : IDD : ", id);
-          
-
-          await sendMagicLink(email, id);
+          await sendMagicLink(email as string, id);
           setMailMSg(true);
 
           // router.push("/chat");
