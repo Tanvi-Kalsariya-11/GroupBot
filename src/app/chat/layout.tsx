@@ -8,7 +8,7 @@ const Layout = ({
   children: React.ReactNode;
 }>) => {
   return (
-    <div className="w-full flex h-[calc(100vh_-_theme(spacing.16))] ">
+    <div className="w-full flex h-[calc(100vh_-_64px)] ">
       <ChatSidebar />
       {children}
     </div>

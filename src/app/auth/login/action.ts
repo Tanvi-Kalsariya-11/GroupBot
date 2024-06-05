@@ -1,6 +1,5 @@
 "use server";
 
-import { User } from "@/lib/types";
 import { z } from "zod";
 // import { kv } from "@vercel/kv";
 import { ResultCode, getStringFromBuffer } from "@/lib/utils";
@@ -38,25 +37,20 @@ export async function authenticate(
   _prevState: Result | undefined,
   formData: FormData
 ): Promise<Result | undefined> {
-
   try {
     const email = formData.get("email");
-    const password = formData.get("password");
 
     const parsedCredentials = z
       .object({
         email: z.string().email(),
-        password: z.string().min(6),
       })
       .safeParse({
         email,
-        password,
       });
 
     if (parsedCredentials.success) {
       await signIn("credentials", {
         email,
-        password,
         redirect: false,
       });
 
@@ -94,28 +88,25 @@ export async function signup(
   formData: FormData
 ): Promise<Result | undefined> {
   const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
 
   const parsedCredentials = z
     .object({
       email: z.string().email(),
-      password: z.string().min(6),
     })
     .safeParse({
       email,
-      password,
     });
 
   if (parsedCredentials.success) {
-    const salt = crypto.randomUUID();
+    // const salt = crypto.randomUUID();
 
-    const encoder = new TextEncoder();
-    const saltedPassword = encoder.encode(password + salt);
-    const hashedPasswordBuffer = await crypto.subtle.digest(
-      "SHA-256",
-      saltedPassword
-    );
-    const hashedPassword = getStringFromBuffer(hashedPasswordBuffer);
+    // const encoder = new TextEncoder();
+    // const saltedPassword = encoder.encode(password + salt);
+    // const hashedPasswordBuffer = await crypto.subtle.digest(
+    //   "SHA-256",
+    //   saltedPassword
+    // );
+    // const hashedPassword = getStringFromBuffer(hashedPasswordBuffer);
 
     try {
       // const result = await createUser(email, hashedPassword, salt);

@@ -60,6 +60,18 @@ const PromptForm = ({
         ]);
 
         // Submit and get response message
+
+        const response = await fetch(`/api/assistants/threads/messages`, {
+          method: "POST",
+          body: JSON.stringify({
+            content: value,
+          }),
+        });
+
+        console.log(" : response : ", response);
+
+        // const stream = AssistantStream.fromReadableStream(response.body);
+        // handleReadableStream(stream);
         const responseMessage = await submitUserMessage(value);
         setMessages((messages) => [...messages, responseMessage]);
       }}

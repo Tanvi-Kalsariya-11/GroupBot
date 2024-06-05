@@ -40,7 +40,9 @@ export default function RootLayout({
           <TooltipProvider>
             <div className="w-full flex h-[calc(100vh_-_64px)]">
               <Sidebar />
-              <div className="w-full bg-gray-100">{children}</div>
+              <div className="w-full bg-gray-100 h-full overflow-hidden">
+                {children}
+              </div>
             </div>
             <TailwindIndicator />
           </TooltipProvider>

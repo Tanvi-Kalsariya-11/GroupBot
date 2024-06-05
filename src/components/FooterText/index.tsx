@@ -5,7 +5,7 @@ import ExternalLink from "../ExternalLink";
 
 const FooterText = ({ className, ...props }: React.ComponentProps<"p">) => {
   return (
-    <p
+    <div
       className={classNames(
         "px-2 text-center text-xs leading-normal text-muted-foreground",
         className
@@ -18,7 +18,7 @@ const FooterText = ({ className, ...props }: React.ComponentProps<"p">) => {
         Vercel AI SDK
       </ExternalLink>
       .
-    </p>
+    </div>
   );
 };
 
