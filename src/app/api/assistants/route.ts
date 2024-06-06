@@ -1,6 +1,5 @@
 import { openai } from "@/openai";
 
-
 export const runtime = "nodejs";
 
 // Create a new assistant

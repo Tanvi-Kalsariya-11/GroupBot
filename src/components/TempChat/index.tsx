@@ -60,10 +60,10 @@ type ChatProps = {
 const Chat = ({
   functionCallHandler = () => Promise.resolve(""), // default to return empty string
 }: ChatProps) => {
-  const [userInput, setUserInput] = useState<any>("");
-  const [messages, setMessages] = useState<any>([]);
-  const [inputDisabled, setInputDisabled] = useState<any>(false);
-  const [threadId, setThreadId] = useState<any>("");
+  const [userInput, setUserInput] = useState<string>("");
+  const [messages, setMessages] = useState<MessageProps[]>([]);
+  const [inputDisabled, setInputDisabled] = useState<boolean>(false);
+  const [threadId, setThreadId] = useState<string>("");
 
   // automatically scroll to bottom of chat
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -77,52 +77,67 @@ const Chat = ({
   // create a new threadID when chat component created
   useEffect(() => {
     const createThread = async () => {
-      const res = await fetch(`/api/assistants/threads`, {
-        method: "POST",
-      });
-      const data = await res.json();
-      setThreadId(data.threadId);
+      try {
+        const res = await fetch(`/api/assistants/threads`, {
+          method: "POST",
+        });
+        const data = await res.json();
+        setThreadId(data.threadId);
+      } catch (error) {
+        console.error("Error creating thread:", error);
+      }
     };
     createThread();
   }, []);
 
   const sendMessage = async (text: string) => {
-    const response = await fetch(
-      `/api/assistants/threads/${threadId}/messages`,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          content: text,
-        }),
-      }
-    );
-    const stream = AssistantStream.fromReadableStream(response.body as any);
-    handleReadableStream(stream);
+    console.log("Sending message:", text);
+
+    try {
+      const response = await fetch(
+        `/api/assistants/threads/${threadId}/messages`,
+        {
+          method: "POST",
+          body: JSON.stringify({ content: text }),
+        }
+      );
+
+      const stream = AssistantStream.fromReadableStream(response.body as any);
+      handleReadableStream(stream);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
   };
 
-  const submitActionResult = async (runId: any, toolCallOutputs: any) => {
-    const response = await fetch(
-      `/api/assistants/threads/${threadId}/actions`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          runId: runId,
-          toolCallOutputs: toolCallOutputs,
-        }),
-      }
-    );
-    const stream = AssistantStream.fromReadableStream(response.body as any);
-    handleReadableStream(stream);
+  const submitActionResult = async (runId: string, toolCallOutputs: any) => {
+    try {
+      const response = await fetch(
+        `/api/assistants/threads/${threadId}/actions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            runId: runId,
+            toolCallOutputs: toolCallOutputs,
+          }),
+        }
+      );
+
+      const stream = AssistantStream.fromReadableStream(response.body as any);
+      handleReadableStream(stream);
+    } catch (error) {
+      console.error("Error submitting action result:", error);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!userInput.trim()) return;
+
     sendMessage(userInput);
-    setMessages((prevMessages: any) => [
+    setMessages((prevMessages) => [
       ...prevMessages,
       { role: "user", text: userInput },
     ]);
@@ -133,12 +148,10 @@ const Chat = ({
 
   /* Stream Event Handlers */
 
-  // textCreated - create new assistant message
   const handleTextCreated = () => {
     appendMessage("assistant", "");
   };
 
-  // textDelta - append text to last assistant message
   const handleTextDelta = (delta: any) => {
     if (delta.value != null) {
       appendToLastMessage(delta.value);
@@ -148,31 +161,27 @@ const Chat = ({
     }
   };
 
-  // imageFileDone - show image in chat
   const handleImageFileDone = (image: any) => {
     appendToLastMessage(`\n![${image.file_id}](/api/files/${image.file_id})\n`);
   };
 
-  // toolCallCreated - log new tool call
   const toolCallCreated = (toolCall: any) => {
-    if (toolCall.type != "code_interpreter") return;
+    if (toolCall.type !== "code_interpreter") return;
     appendMessage("code", "");
   };
 
-  // toolCallDelta - log delta and snapshot for the tool call
   const toolCallDelta = (delta: any, snapshot: any) => {
-    if (delta.type != "code_interpreter") return;
+    if (delta.type !== "code_interpreter") return;
     if (!delta.code_interpreter.input) return;
     appendToLastMessage(delta.code_interpreter.input);
   };
 
-  // handleRequiresAction - handle function call
   const handleRequiresAction = async (
     event: AssistantStreamEvent.ThreadRunRequiresAction
   ) => {
     const runId = event.data.id;
     const toolCalls = event.data.required_action.submit_tool_outputs.tool_calls;
-    // loop over tool calls and call function handler
+
     const toolCallOutputs = await Promise.all(
       toolCalls.map(async (toolCall: any) => {
         const result = await functionCallHandler(toolCall);
@@ -180,45 +189,33 @@ const Chat = ({
       })
     );
 
-    console.log(" : toolCallOutputs : ", toolCallOutputs);
-
     setInputDisabled(true);
     submitActionResult(runId, toolCallOutputs);
   };
 
-  // handleRunCompleted - re-enable the input form
   const handleRunCompleted = () => {
     setInputDisabled(false);
   };
 
   const handleReadableStream = (stream: AssistantStream) => {
-    // messages
+    console.log(" : in handleReadableStream stream : ", stream);
+
     stream.on("textCreated", handleTextCreated);
     stream.on("textDelta", handleTextDelta);
-
-    // image
     stream.on("imageFileDone", handleImageFileDone);
-
-    // code interpreter
     stream.on("toolCallCreated", toolCallCreated);
     stream.on("toolCallDelta", toolCallDelta);
-
-    // events without helpers yet (e.g. requires_action and run.done)
-    stream.on("event", (event) => {
+    stream.on("event", async (event) => {
       if (event.event === "thread.run.requires_action")
-        handleRequiresAction(event);
+        await handleRequiresAction(event);
       if (event.event === "thread.run.completed") handleRunCompleted();
     });
   };
 
-  /*
-    =======================
-    === Utility Helpers ===
-    =======================
-  */
+  /* Utility Helpers */
 
-  const appendToLastMessage = (text: any) => {
-    setMessages((prevMessages: any) => {
+  const appendToLastMessage = (text: string) => {
+    setMessages((prevMessages) => {
       const lastMessage = prevMessages[prevMessages.length - 1];
       const updatedLastMessage = {
         ...lastMessage,
@@ -228,24 +225,24 @@ const Chat = ({
     });
   };
 
-  const appendMessage = (role: any, text: any) => {
-    setMessages((prevMessages: any) => [...prevMessages, { role, text }]);
+  const appendMessage = (role: "user" | "assistant" | "code", text: string) => {
+    setMessages((prevMessages) => [...prevMessages, { role, text }]);
   };
 
   const annotateLastMessage = (annotations: any) => {
-    setMessages((prevMessages: any) => {
+    setMessages((prevMessages) => {
       const lastMessage = prevMessages[prevMessages.length - 1];
-      const updatedLastMessage = {
-        ...lastMessage,
-      };
+      const updatedLastMessage = { ...lastMessage };
+
       annotations.forEach((annotation: any) => {
         if (annotation.type === "file_path") {
-          updatedLastMessage.text = updatedLastMessage.text.replaceAll(
+          updatedLastMessage.text = updatedLastMessage.text.replace(
             annotation.text,
             `/api/files/${annotation.file_path.file_id}`
           );
         }
       });
+
       return [...prevMessages.slice(0, -1), updatedLastMessage];
     });
   };
@@ -253,7 +250,7 @@ const Chat = ({
   return (
     <div className={styles.chatContainer}>
       <div className={styles.messages}>
-        {messages.map((msg: any, index: number) => (
+        {messages.map((msg, index) => (
           <Message key={index} role={msg.role} text={msg.text} />
         ))}
         <div ref={messagesEndRef} />
