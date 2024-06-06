@@ -7,7 +7,6 @@ import Markdown from "react-markdown";
 // @ts-expect-error - no types for this yet
 import { AssistantStreamEvent } from "openai/resources/beta/assistants/assistants";
 import { RequiredActionFunctionToolCall } from "openai/resources/beta/threads/runs/runs";
-import { AvtarIcon } from "../Icons";
 
 type MessageProps = {
   role: "user" | "assistant" | "code";
@@ -58,18 +57,13 @@ type ChatProps = {
   ) => Promise<string>;
 };
 
-type Message = {
-  role: "user" | "assistant" | "code";
-  text: string;
-};
-
-const TempChat = ({
+const Chat = ({
   functionCallHandler = () => Promise.resolve(""), // default to return empty string
 }: ChatProps) => {
-  const [userInput, setUserInput] = useState<string>("");
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [inputDisabled, setInputDisabled] = useState<boolean>(false);
-  const [threadId, setThreadId] = useState<string>("");
+  const [userInput, setUserInput] = useState<any>("");
+  const [messages, setMessages] = useState<any>([]);
+  const [inputDisabled, setInputDisabled] = useState<any>(false);
+  const [threadId, setThreadId] = useState<any>("");
 
   // automatically scroll to bottom of chat
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -106,7 +100,7 @@ const TempChat = ({
     handleReadableStream(stream);
   };
 
-  const submitActionResult = async (runId: string, toolCallOutputs: any) => {
+  const submitActionResult = async (runId: any, toolCallOutputs: any) => {
     const response = await fetch(
       `/api/assistants/threads/${threadId}/actions`,
       {
@@ -127,11 +121,8 @@ const TempChat = ({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!userInput.trim()) return;
-
-    console.log(" : usr input : ", userInput);
-
     sendMessage(userInput);
-    setMessages((prevMessages) => [
+    setMessages((prevMessages: any) => [
       ...prevMessages,
       { role: "user", text: userInput },
     ]);
@@ -183,11 +174,14 @@ const TempChat = ({
     const toolCalls = event.data.required_action.submit_tool_outputs.tool_calls;
     // loop over tool calls and call function handler
     const toolCallOutputs = await Promise.all(
-      toolCalls.map(async (toolCall: RequiredActionFunctionToolCall) => {
+      toolCalls.map(async (toolCall: any) => {
         const result = await functionCallHandler(toolCall);
         return { output: result, tool_call_id: toolCall.id };
       })
     );
+
+    console.log(" : toolCallOutputs : ", toolCallOutputs);
+
     setInputDisabled(true);
     submitActionResult(runId, toolCallOutputs);
   };
@@ -210,7 +204,7 @@ const TempChat = ({
     stream.on("toolCallDelta", toolCallDelta);
 
     // events without helpers yet (e.g. requires_action and run.done)
-    stream.on("event", (event: any) => {
+    stream.on("event", (event) => {
       if (event.event === "thread.run.requires_action")
         handleRequiresAction(event);
       if (event.event === "thread.run.completed") handleRunCompleted();
@@ -223,8 +217,8 @@ const TempChat = ({
     =======================
   */
 
-  const appendToLastMessage = (text: string) => {
-    setMessages((prevMessages) => {
+  const appendToLastMessage = (text: any) => {
+    setMessages((prevMessages: any) => {
       const lastMessage = prevMessages[prevMessages.length - 1];
       const updatedLastMessage = {
         ...lastMessage,
@@ -234,17 +228,17 @@ const TempChat = ({
     });
   };
 
-  const appendMessage = (role: "user" | "assistant" | "code", text: string) => {
-    setMessages((prevMessages) => [...prevMessages, { role, text }]);
+  const appendMessage = (role: any, text: any) => {
+    setMessages((prevMessages: any) => [...prevMessages, { role, text }]);
   };
 
-  const annotateLastMessage = (annotations: any[]) => {
-    setMessages((prevMessages) => {
+  const annotateLastMessage = (annotations: any) => {
+    setMessages((prevMessages: any) => {
       const lastMessage = prevMessages[prevMessages.length - 1];
       const updatedLastMessage = {
         ...lastMessage,
       };
-      annotations.forEach((annotation) => {
+      annotations.forEach((annotation: any) => {
         if (annotation.type === "file_path") {
           updatedLastMessage.text = updatedLastMessage.text.replaceAll(
             annotation.text,
@@ -259,7 +253,7 @@ const TempChat = ({
   return (
     <div className={styles.chatContainer}>
       <div className={styles.messages}>
-        {messages.map((msg, index) => (
+        {messages.map((msg: any, index: number) => (
           <Message key={index} role={msg.role} text={msg.text} />
         ))}
         <div ref={messagesEndRef} />
@@ -287,4 +281,4 @@ const TempChat = ({
   );
 };
 
-export default TempChat;
+export default Chat;

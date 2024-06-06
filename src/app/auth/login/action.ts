@@ -22,6 +22,7 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY as string);
 
 export async function sendMagicLink(email: string, token: string) {
   const magicLink = `${process.env.NEXTAUTH_URL}/?token=${token}&email=${email}`;
+
   const msg = {
     to: email,
     from: "nori@cente.io",

@@ -2,9 +2,17 @@
 import React, { useState } from "react";
 import { AvtarIcon, GroupIcon, PersonIcon, PlusIcon } from "../Icons";
 import GroupCard from "../GroupCard";
+import { useRouter } from "next/navigation";
 
 const ChatSidebar = () => {
   const [active, setActive] = useState(1);
+  const router = useRouter();
+
+  const handleOnClick = (e: any) => {
+    setActive(e);
+    router.push(`/chat/${e}`);
+  };
+
   return (
     <div className="w-full max-w-[300px] border border-t-0 ">
       <div className="flex items-center justify-between p-3 border border-t-0 border-l-0 border-r-0">
@@ -26,7 +34,7 @@ const ChatSidebar = () => {
           <GroupCard
             key={ind}
             active={e === active}
-            handleOnClick={() => setActive(e)}
+            handleOnClick={() => handleOnClick(e)}
           />
         ))}
       </div>
